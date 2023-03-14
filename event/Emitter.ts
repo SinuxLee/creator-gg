@@ -10,7 +10,7 @@ class Event {
     }
 }
 
-export class Emitter extends Singleton {
+export default class Emitter extends Singleton {
     private events: Map<string, Event[]> = new Map();
     private targetEvents: Map<object, Set<string>> = new Map();
 
@@ -45,7 +45,17 @@ export class Emitter extends Singleton {
         names.add(name);
     }
 
-    public off(name: string, handler: Function, target: object) {
+    public once(name: string, handler: Function, target: object | null = null) {
+        const fn = (...args: any) => {
+            if (handler.prototype === undefined || target == null) handler(args);
+            else handler.apply(target, args);
+            this.off(name, fn)
+        }
+
+        this.on(name, fn)
+    }
+
+    public off(name: string, handler: Function, target: object | null = null) {
         const events = this.events.get(name);
         if (events == null) return
 
